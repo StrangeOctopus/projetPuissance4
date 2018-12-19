@@ -33,7 +33,7 @@ msg_jaune :	.asciiz "Le joueur JAUNE a gagné, félicitations !\n"
 main :		
 		jal jouerPartie
 		
-		li $v0, 10
+		ori $v0, $0, 10
 		syscall
 
 
@@ -57,7 +57,7 @@ afficherCase : 					# NECESSITE UNE COULEUR PASSEE EN PARAMETRE DANS $a0 / ne re
 		la $t2, JAUNE
 		lw $t2, 0($t2) 			# Contient la valeur ROUGE
 		
-		li $v0, 4 			#Code service afficher chaine de caractères
+		ori $v0, $v0, 4 			#Code service afficher chaine de caractères
 		
 if_vide :	bne $t3, $t0, elsif_rouge
 		la $a0, symb_vide
@@ -95,8 +95,8 @@ afficherGrille:					# NE PREND PAS DE PARAMETRES / ne retourne rien
 		la $t4, grille 			#Contient l'adresse de la GRILLE
 		addi $t4, $t4, 168 		#Contient l'adresse de la première case a afficher
 		
-		li $t5, 0 			# Compteur de colonne
-		li $t6, 0 			# Compteur de ligne
+		ori $t5, $v0, 0 			# Compteur de colonne
+		ori $t6, $v0, 0 			# Compteur de ligne
 		
 		sw $ra, 0($sp)			# Enregistrement sur la pile
 		sw $t1, 4($sp)			# 
@@ -129,9 +129,9 @@ for_colonnes :	beq $t5, $t2, fin_colonnes
 		addi $t4, $t4 4 		# On incrémente l'adresse de la grille à la case suivante
 		j for_colonnes
 		
-fin_colonnes :	li $t5, 0
+fin_colonnes :	ori $t5, $v0, 0
 		la $a0, retour
-		li $v0, 4
+		ori $v0, $v0, 4
 		syscall
 		addi $t6, $t6, 1
 		addi $t4, $t4, 24 		# On passe à la prochaine case à afficher (on saute les trois cases restantes sur la ligne présente et les 3 prmière de la ligne suivante)
@@ -158,17 +158,17 @@ ajouterJeton :					# NECESSITE UN NUMERO DE COLONNE (0 - 6) PASSE EN PARAMETRE D
 		la $t3, grille
 		addi $t3, $t3, 428		# Correspond au numéro de la case la plus basse de la colonne 0
 		
-		li $t1, 2
+		ori $t1, $v0, 2
 		
 		div $t0, $t1
 		mfhi $t1			# Récupération de nbCoupJoué modulo 2 pour choisir la couleur
 		
 rouge :		bnez $t1, jaune			# $t2 contiendra la couleur du jeton à ajouter
-		li $t2, -1			#
+		ori $t2, $0, -1			#
 jaune :		beqz $t1, suite			#
-		li $t2, 1			#
+		ori $t2, $0, 1			#
 		
-suite :		li $t4, 4
+suite :		ori $t4, $0, 4
 		mul $t4, $t4, $a0		# Décallage en fonction de la colonne entrée
 		add $t3, $t3, $t4
 		lw $t1, 0($t3)			# Couleur de la case la plus basse de la colonne entrée ($t1)
@@ -231,12 +231,12 @@ estCoupValide :					# NECESSITE un numéro de colonne (0 - 6) en parametre ($a0)
 		add $t0, $t0, $a0		# On se place dans la case qui compte les jetons de la colonne demandée
 		
 		lw $t1, 0($t0)			# Nombre de jetons dans cette colonne
-		li $t2, 6			# Nombre max de jetons
+		ori $t2, $0, 6			# Nombre max de jetons
 
 if_non_valide :	bne $t1, $t2, elsif_valide	# Compare le compteur de cases occupées avec le nombre de cases dans une colonne
-		li $v0, 0			# Retourne "le coup n'est pas valide"
+		ori $v0, $0, 0			# Retourne "le coup n'est pas valide"
 elsif_valide :	beq $t1, $t2, fin_estValide
-		li $v0, 1			# Retourne "le coup est valide"
+		ori $v0, $0, 1			# Retourne "le coup est valide"
 		
 fin_estValide :	lw $fp, 28($sp)
 		addu $sp, $sp, 32
@@ -256,24 +256,24 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		
 		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
-		li $t1, 2
+		ori $t1, $0, 2
 		div $t0, $t1
 		mfhi $t1
 		
 tour_rouge :	bnez $t1, tour_jaune		# Affichage de la couleur du joueur dont c'est le tour de jouer
 		la $a0, phrase_rouge
-		li $v0, 4
+		ori $v0, $0, 4
 		syscall
 					
 tour_jaune :	beqz $t1, suite_coup
 		la $a0, phrase_jaune
-		li $v0, 4
+		ori $v0, $0, 4
 		syscall		
 		
 suite_coup :	la $a0, demande_col		# Affichage de la demande de colonne
-		li $v0, 4
+		ori $v0, $0, 4
 		syscall
-		li $v0, 5
+		ori $v0, $0, 5
 		syscall
 		sw $v0, 4($sp)			# Stockage de la valeur de la colonne sur la pile
 		move $a0, $v0			# Passage de la valeur de la colonne en parametre de la fonction appelée 
