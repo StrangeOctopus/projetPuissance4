@@ -12,7 +12,7 @@ JAUNE :		.word 1
 nb_jetons :	.word 0 : 7
 grille :	.word 0 : 156
 
-nbCoupJoué : 	.word 0
+nbCoupJoue : 	.word 0
 
 symb_jaune :	.asciiz "[+]"
 symb_rouge :	.asciiz "[*]"
@@ -153,7 +153,7 @@ ajouterJeton :					# NECESSITE UN NUMERO DE COLONNE (0 - 6) PASSE EN PARAMETRE D
 		sw $fp, 28($sp)
 		addu $fp, $sp, 32
 		
-		la $t0, nbCoupJoué
+		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		la $t3, grille
 		addi $t3, $t3, 428		# Correspond au numéro de la case la plus basse de la colonne 0
@@ -254,7 +254,7 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		
 		jal afficherGrille
 		
-		la $t0, nbCoupJoué
+		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		li $t1, 2
 		div $t0, $t1
@@ -289,7 +289,7 @@ suite_coup :	la $a0, demande_col		# Affichage de la demande de colonne
 		lw $v0, 4($sp)			# Numéro de la colonne à retourner
 		lw $ra, 0($sp)		
 		
-		la $t1, nbCoupJoué		# Incrémentation du nombre de coup joués 
+		la $t1, nbCoupJoue		# Incrémentation du nombre de coup joués 
 		lw $t2, 0($t1)			#
 		addi $t2, $t2, 1		#
 		sw $t2, 0($t1)			#
@@ -448,7 +448,7 @@ jouerPartie :					# NE NECESSITE RIEN / ne retourne rien
 		
 		sw $ra, 0($sp)
 		
-		la $t0, nbCoupJoué
+		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		
 boucle_partie :	beq $t0, 42, fin_partie		# Permet de jouer un coup tant que le nombre maximum de coup n'est pas atteint
@@ -456,7 +456,7 @@ boucle_partie :	beq $t0, 42, fin_partie		# Permet de jouer un coup tant que le n
 		sw $v0, 4($fp)
 		move $a0, $v0
 		jal estCoupGagnant
-		la $t0, nbCoupJoué
+		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		beqz $v0, boucle_partie
 
@@ -496,7 +496,7 @@ analyserFinPartie :				# NECESSITE la colonne du dernier coup joué dans $a0 / n
 		
 		jal afficherGrille
 		
-		la $t0, nbCoupJoué
+		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		lw $t1, 4($sp)
 		ori $v0, $0, 4
