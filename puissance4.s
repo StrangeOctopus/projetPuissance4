@@ -22,7 +22,7 @@ retour :	.asciiz "\n"
 
 phrase_jaune :	.asciiz "Joueur JAUNE à vous de jouer\n"
 phrase_rouge :	.asciiz "Joueur ROUGE à vous de jouer\n"
-demande_col :	.asciiz "Entrer une colonne (entre 0 et 6)\n"
+demande_col :	.asciiz "Entrer une colonne (entre 1 et 7)\n"
 
 msg_nul :	.asciiz "La partie est terminée, égalité la grille est pleine !\n"
 msg_rouge :	.asciiz "Le joueur ROUGE a gagné, félicitations !\n"
@@ -275,6 +275,11 @@ suite_coup :	la $a0, demande_col		# Affichage de la demande de colonne
 		syscall
 		ori $v0, $0, 5
 		syscall
+		
+		bge $v0, 8, suite_coup		# Mauvaise entrée
+		ble $v0, 0, suite_coup		#
+		
+		addi $v0, $v0, -1		# Colonne entre 1 et 7 en entrée : plus user friendly
 		sw $v0, 4($sp)			# Stockage de la valeur de la colonne sur la pile
 		move $a0, $v0			# Passage de la valeur de la colonne en parametre de la fonction appelée 
 		
