@@ -57,7 +57,7 @@ afficherCase : 					# NECESSITE UNE COULEUR PASSEE EN PARAMETRE DANS $a0 / ne re
 		la $t2, JAUNE
 		lw $t2, 0($t2) 			# Contient la valeur ROUGE
 		
-		ori $v0, $v0, 4 			#Code service afficher chaine de caractères
+		ori $v0, $0, 4 			#Code service afficher chaine de caractères
 		
 if_vide :	bne $t3, $t0, elsif_rouge
 		la $a0, symb_vide
@@ -95,8 +95,8 @@ afficherGrille:					# NE PREND PAS DE PARAMETRES / ne retourne rien
 		la $t4, grille 			#Contient l'adresse de la GRILLE
 		addi $t4, $t4, 168 		#Contient l'adresse de la première case a afficher
 		
-		ori $t5, $v0, 0 			# Compteur de colonne
-		ori $t6, $v0, 0 			# Compteur de ligne
+		ori $t5, $0, 0 			# Compteur de colonne
+		ori $t6, $0, 0 			# Compteur de ligne
 		
 		sw $ra, 0($sp)			# Enregistrement sur la pile
 		sw $t1, 4($sp)			# 
@@ -129,9 +129,9 @@ for_colonnes :	beq $t5, $t2, fin_colonnes
 		addi $t4, $t4 4 		# On incrémente l'adresse de la grille à la case suivante
 		j for_colonnes
 		
-fin_colonnes :	ori $t5, $v0, 0
+fin_colonnes :	ori $t5, $0, 0
 		la $a0, retour
-		ori $v0, $v0, 4
+		ori $v0, $0, 4
 		syscall
 		addi $t6, $t6, 1
 		addi $t4, $t4, 24 		# On passe à la prochaine case à afficher (on saute les trois cases restantes sur la ligne présente et les 3 prmière de la ligne suivante)
@@ -158,7 +158,7 @@ ajouterJeton :					# NECESSITE UN NUMERO DE COLONNE (0 - 6) PASSE EN PARAMETRE D
 		la $t3, grille
 		addi $t3, $t3, 428		# Correspond au numéro de la case la plus basse de la colonne 0
 		
-		ori $t1, $v0, 2
+		ori $t1, $0, 2
 		
 		div $t0, $t1
 		mfhi $t1			# Récupération de nbCoupJoué modulo 2 pour choisir la couleur
