@@ -1,6 +1,6 @@
 		.data
 
-NB_LIG_MODEL : 	.word 12			#commentaire Thomas
+NB_LIG_MODEL : 	.word 12			#commentaire de Thomas
 NB_COL_MODEL :	.word 13
 NB_LIG_VUE :	.word 6
 NB_COL_VUE :	.word 7
