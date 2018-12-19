@@ -271,17 +271,15 @@ tour_jaune :	beqz $t1, suite_coup
 		syscall		
 		
 suite_coup :	la $a0, demande_col		# Affichage de la demande de colonne
-		ori $v0, $0, 4
-		syscall
-		ori $v0, $0, 5
+		ori $v0, $0, 51
 		syscall
 		
-		bge $v0, 8, suite_coup		# Mauvaise entrée
-		ble $v0, 0, suite_coup		#
+		bnez $a1, suite_coup		# Mauvaise entrée
+		bge $a0, 8, suite_coup		#
+		ble $a0, 0, suite_coup		#
 		
-		addi $v0, $v0, -1		# Colonne entre 1 et 7 en entrée : plus user friendly
-		sw $v0, 4($sp)			# Stockage de la valeur de la colonne sur la pile
-		move $a0, $v0			# Passage de la valeur de la colonne en parametre de la fonction appelée 
+		addi $a0, $a0, -1		# Colonne entre 1 et 7 en entrée : more user friendly
+		sw $a0, 4($sp)			# Stockage de la valeur de la colonne sur la pile
 		
 		jal estCoupValide
 		move $t1, $v0			# Récupération de la valeur retournée par la fonction
@@ -504,7 +502,8 @@ analyserFinPartie :				# NECESSITE la colonne du dernier coup joué dans $a0 / n
 		la $t0, nbCoupJoue
 		lw $t0, 0($t0)
 		lw $t1, 4($sp)
-		ori $v0, $0, 4
+		ori $v0, $0, 55
+		ori $a1, $0, 4
 		
 if_nul :	bne $t0, 42, if_rouge
 		la $a0, msg_nul
@@ -520,7 +519,6 @@ else_jaune :	la $a0, msg_jaune
 		syscall
 
 fin_analyse :	
-		
 		lw $ra, 0($sp)
 		lw $fp, 28($sp)
 		addu $sp, $sp, 32
