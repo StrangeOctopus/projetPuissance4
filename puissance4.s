@@ -27,10 +27,18 @@ demande_col :	.asciiz "Entrer une colonne (entre 1 et 7)\n"
 msg_nul :	.asciiz "La partie est terminée, égalité la grille est pleine !\n"
 msg_rouge :	.asciiz "Le joueur ROUGE a gagné, félicitations !\n"
 msg_jaune :	.asciiz "Le joueur JAUNE a gagné, félicitations !\n"
+msgNewGame :	.asciiz "Voulez vous rejouer une partie"
 
 		.text
 		
 main :		
+		jal initGrille
+		la $a0, retour
+		ori $v0, $0, 4
+		
+		syscall
+		syscall
+		
 		jal jouerPartie
 		
 		ori $v0, $0, 10
@@ -216,7 +224,31 @@ demanderCouleur:
 		lw $fp, 28($sp)
 		addu $sp, $sp, 32
 		jr $ra
+				
 					
+						
+initGrille :	
+		subu $sp, $sp, 32
+		sw $fp, 28($sp)
+		addu $fp, $sp, 32
+		
+		la $t0, grille			# adresse de la grille dans $t0
+		ori $t1, $0, 0			# $t1 : compteur pour for
+		
+forInit :	beq $t1, 156, finForInit
+
+		ori $a0, $0, 1
+		ori $v0, $0, 1
+		syscall
+
+		lw $0, 0($t0)
+		addi $t0, $t0, 4		# Incrémentation de l'adresse
+		addi $t1, $t1, 1		# Incrémentation du compteur
+		j forInit
+		
+finForInit :	lw $fp, 28($sp)
+		addu $sp, $sp, 32
+		jr $ra
 	
 			
 			###################### Jeu Puissance 4 ####################
@@ -465,6 +497,11 @@ boucle_partie :	beq $t0, 42, fin_partie		# Permet de jouer un coup tant que le n
 
 fin_partie :	lw $a0, 4($fp)			# Récupère la dernière colonne entrée par un joueur
 		jal analyserFinPartie
+		
+		la $a0, msgNewGame
+		ori $v0, $0, 50
+		syscall
+		beqz $a0, main
 		
 		lw $ra, 0($sp)
 		lw $fp, 28($sp)
