@@ -20,20 +20,32 @@ symb_vide :	.asciiz "[ ]"
 
 retour :	.asciiz "\n"
 
-phrase_jaune :	.asciiz "Joueur JAUNE à vous de jouer\n"
-phrase_rouge :	.asciiz "Joueur ROUGE à vous de jouer\n"
+phrase_tour :	.asciiz " à vous de jouer\n"
+
 demande_col :	.asciiz "Entrer une colonne (entre 1 et 7)\n"
 
-msg_nul :	.asciiz "La partie est terminée, égalité la grille est pleine !\n"
-msg_rouge :	.asciiz "Le joueur ROUGE a gagné, félicitations !\n"
-msg_jaune :	.asciiz "Le joueur JAUNE a gagné, félicitations !\n"
+nom_jaune :	.space 20
+nom_rouge :	.space 20
+demande_jaune : .asciiz "Joueur JAUNE rentrez votre prénom :"
+demande_rouge : .asciiz "Joueur ROUGE rentrez votre prénom :"
+
+msg_nul :	.asciiz "La partie est terminée, égalité la grille est pleine !"
+msg_gagnant1 :	.asciiz "Le joueur "
+msg_gagnant2 :	.asciiz " a gagné, félicitations !"
 msgNewGame :	.asciiz "Voulez vous rejouer une partie"
+
+resultat :	.space 300
 
 		.text
 		
 main :		
-		jal initPartie
-		la $a0, retour
+		jal demandePrenom
+		
+debPartie :	jal initPartie
+		jal resetResultat
+		
+
+		la $a0, retour 			# Saute deux lignes
 		ori $v0, $0, 4
 		
 		syscall
@@ -250,12 +262,32 @@ forInitJeton:	beq $t1, 7, finInit		# Initialise le tableau nb_jetons
 		sw $0, 0($t0)
 		addi $t0, $t0, 4
 		addi $t1, $t1, 1
-		j forInitJeton
+		j forInitJeton		
 		
 finInit :	la $t0, nbCoupJoue		# Réinitialise le nombre de coup à 0
 		sw $0, 0($t0)			#
 		
 		lw $fp, 28($sp)
+		addu $sp, $sp, 32
+		jr $ra
+		
+		
+		
+resetResultat :					# NE NECESSITE RIEN / ne retourne rien (réinitialise la chaine resultat)
+		subu $sp, $sp, 32
+		sw $fp, 28($sp)
+		addu $fp, $sp, 32
+		
+		la $t0, resultat
+		ori $t1, $0, 0
+		
+forInitRes :	beq $t1, 300, finReset
+		sb $0, 0($t0)
+		addi $t0, $t0, 1
+		addi $t1, $t1, 1
+		j forInitRes
+		
+finReset :	lw $fp, 28($sp)
 		addu $sp, $sp, 32
 		jr $ra
 	
@@ -305,15 +337,26 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		ori $t1, $0, 2
 		div $t0, $t1
 		mfhi $t1
+		
+		sw $t1, 4($sp)
+		jal resetResultat
+		lw $t1, 4($sp)
 
 		
 tour_rouge :	bnez $t1, tour_jaune		# Affichage de la couleur du joueur dont c'est le tour de jouer
-		la $a0, phrase_rouge
+		la $a0, nom_rouge
+		la $a1, phrase_tour
+		jal concatenation
+		move $a0, $v0
 		ori $v0, $0, 4
 		syscall
+		lw $t1, 4($sp)
 					
 tour_jaune :	beqz $t1, suite_coup
-		la $a0, phrase_jaune
+		la $a0, nom_jaune
+		la $a1, phrase_tour
+		jal concatenation
+		move $a0, $v0
 		ori $v0, $0, 4
 		syscall		
 		
@@ -513,10 +556,10 @@ boucle_partie :	beq $t0, 42, fin_partie		# Permet de jouer un coup tant que le n
 fin_partie :	lw $a0, 4($fp)			# Récupère la dernière colonne entrée par un joueur
 		jal analyserFinPartie
 		
-		la $a0, msgNewGame
+		la $a0, msgNewGame		# Demande aux joueurs si ils veulent rejouer
 		ori $v0, $0, 50
 		syscall
-		beqz $a0, main
+		beqz $a0, debPartie
 		
 		lw $ra, 0($sp)
 		lw $fp, 28($sp)
@@ -567,12 +610,29 @@ if_nul :	bne $t0, 42, if_rouge
 		syscall
 		j fin_analyse
 
-if_rouge :	bne $t0, $t1, else_jaune
-		la $a0, msg_rouge
+if_rouge :	jal resetResultat
+		lw $t1, 4($sp)
+		ori $t0, $0, -1
+		bne $t0, $t1, else_jaune
+		la $a0, msg_gagnant1
+		la $a1, nom_rouge
+		jal concatenation
+		move $a0, $v0
+		la $a1, msg_gagnant2
+		jal concatenation
+		la $a0, resultat
+		ori $v0, $0, 55
 		syscall
 		j fin_analyse
 
-else_jaune :	la $a0, msg_jaune
+else_jaune :	la $a0, msg_gagnant1
+		la $a1, nom_jaune
+		jal concatenation
+		move $a0, $v0
+		la $a1, msg_gagnant2
+		jal concatenation
+		la $a0, resultat
+		ori $v0, $0, 55
 		syscall
 
 fin_analyse :	
@@ -580,3 +640,65 @@ fin_analyse :
 		lw $fp, 28($sp)
 		addu $sp, $sp, 32
 		jr $ra
+		
+		
+		
+demandePrenom :					# NE NECESSITE RIEN / ne retourne rien
+		subu $sp, $sp, 32
+		sw $fp, 28($sp)
+		addu $fp, $sp, 32
+		
+prenomRouge :	la $a0, demande_rouge
+ 		la $a1, nom_rouge
+ 		ori $a2, $0, 20
+ 		ori $v0, $0, 54
+ 		syscall
+ 		bnez $a1, prenomRouge
+ 		
+prenomJaune :	la $a0, demande_jaune
+ 		la $a1, nom_jaune
+ 		ori $a2, $0, 20
+ 		ori $v0, $0, 54
+ 		syscall
+ 		bnez $a1, prenomJaune
+		
+		lw $fp, 28($sp)
+		addu $sp, $sp, 32
+		jr $ra
+		
+		
+		
+			###################### Manipulation chaine ####################
+		
+		
+		
+		
+concatenation :				# NECESSITE une chaine dans $a0, une autre dans $a1 / renvoie les deux chaine concaténées dans $v0	
+		subu $sp, $sp, 32
+		sw $fp, 28($sp)
+		addu $fp, $sp, 32
+			
+		la $t0, resultat
+			
+copieChaine1 :	lb $t1, 0($a0)
+		beqz $t1, suiteCpyCh1
+		beq $t1, 10, suiteCpyCh1
+		sb $t1, 0($t0)
+		addi $t0, $t0, 1
+		addi $a0, $a0, 1
+		j copieChaine1
+			
+suiteCpyCh1 :	lb $t1, 0($a1)
+		beqz $t1, suiteCpyCh2
+		beq $t1, 10, suiteCpyCh2
+		sb $t1, 0($t0)
+		addi $t0, $t0, 1
+		addi $a1, $a1, 1
+		j suiteCpyCh1
+			
+suiteCpyCh2 :	la $v0, resultat
+
+		lw $fp, 28($sp)
+		addu $sp, $sp, 32
+		jr $ra
+		
