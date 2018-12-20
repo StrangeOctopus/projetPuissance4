@@ -32,7 +32,7 @@ msgNewGame :	.asciiz "Voulez vous rejouer une partie"
 		.text
 		
 main :		
-		jal initGrille
+		jal initPartie
 		la $a0, retour
 		ori $v0, $0, 4
 		
@@ -227,7 +227,7 @@ demanderCouleur:
 				
 					
 						
-initGrille :	
+initPartie :					# NE NECESSITE RIEN / ne retourne rien (réinitialise la grille pour nouvelle partie)
 		subu $sp, $sp, 32
 		sw $fp, 28($sp)
 		addu $fp, $sp, 32
@@ -235,18 +235,27 @@ initGrille :
 		la $t0, grille			# adresse de la grille dans $t0
 		ori $t1, $0, 0			# $t1 : compteur pour for
 		
-forInit :	beq $t1, 156, finForInit
+forInitGrille :	beq $t1, 156, finInitGrille
 
-		ori $a0, $0, 1
-		ori $v0, $0, 1
-		syscall
-
-		lw $0, 0($t0)
+		sw $0, 0($t0)
 		addi $t0, $t0, 4		# Incrémentation de l'adresse
 		addi $t1, $t1, 1		# Incrémentation du compteur
-		j forInit
+		j forInitGrille
 		
-finForInit :	lw $fp, 28($sp)
+finInitGrille :	la $t0, nb_jetons
+		ori $t1, $0, 0
+		
+forInitJeton:	beq $t1, 7, finInit		# Initialise le tableau nb_jetons
+
+		sw $0, 0($t0)
+		addi $t0, $t0, 4
+		addi $t1, $t1, 1
+		j forInitJeton
+		
+finInit :	la $t0, nbCoupJoue		# Réinitialise le nombre de coup à 0
+		sw $0, 0($t0)			#
+		
+		lw $fp, 28($sp)
 		addu $sp, $sp, 32
 		jr $ra
 	
@@ -284,6 +293,11 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		
 		sw $ra, 0($sp)			# Enregistrement sur la pile de l'adresse de retour 
 		
+				
+		la $a0, retour			# Afficher un retour a la ligne
+		ori $v0, $0, 4			#
+		syscall				#
+		
 		jal afficherGrille
 		
 		la $t0, nbCoupJoue
@@ -291,6 +305,7 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		ori $t1, $0, 2
 		div $t0, $t1
 		mfhi $t1
+
 		
 tour_rouge :	bnez $t1, tour_jaune		# Affichage de la couleur du joueur dont c'est le tour de jouer
 		la $a0, phrase_rouge
@@ -533,6 +548,11 @@ analyserFinPartie :				# NECESSITE la colonne du dernier coup joué dans $a0 / n
 		
 		move $t1, $v0			# Contient la couleur du dernier jeton
 		sw $t1, 4($sp)
+		
+				
+		la $a0, retour			# Afficher un retour a la ligne
+		ori $v0, $0, 4			#
+		syscall				#
 		
 		jal afficherGrille
 		
