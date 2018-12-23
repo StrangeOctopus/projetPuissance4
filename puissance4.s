@@ -329,6 +329,8 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		la $a0, retour			# Afficher un retour a la ligne
 		ori $v0, $0, 4			#
 		syscall				#
+		syscall				#
+		
 		
 		jal afficherGrille
 		
@@ -593,8 +595,9 @@ analyserFinPartie :				# NECESSITE la colonne du dernier coup joué dans $a0 / n
 		sw $t1, 4($sp)
 		
 				
-		la $a0, retour			# Afficher un retour a la ligne
+		la $a0, retour			# Afficher deux retour a la ligne
 		ori $v0, $0, 4			#
+		syscall				#
 		syscall				#
 		
 		jal afficherGrille
