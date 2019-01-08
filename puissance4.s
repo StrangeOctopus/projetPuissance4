@@ -341,23 +341,23 @@ jouerCoup :					# NE NECESSITE RIEN / retourne la colonne entrée par l'utilisat
 		mfhi $t1
 		
 		sw $t1, 4($sp)
-		jal resetResultat
+		jal resetResultat		# réinitialise la chaine resultat 
 		lw $t1, 4($sp)
 
 		
 tour_rouge :	bnez $t1, tour_jaune		# Affichage de la couleur du joueur dont c'est le tour de jouer
-		la $a0, nom_rouge
-		la $a1, phrase_tour
-		jal concatenation
+		la $a0, nom_rouge		# charge le nom du joueur jaune
+		la $a1, phrase_tour		# charge la phrase tour
+		jal concatenation		# concatene les deux 
 		move $a0, $v0
 		ori $v0, $0, 4
 		syscall
 		lw $t1, 4($sp)
 					
 tour_jaune :	beqz $t1, suite_coup
-		la $a0, nom_jaune
-		la $a1, phrase_tour
-		jal concatenation
+		la $a0, nom_jaune		
+		la $a1, phrase_tour		
+		jal concatenation		
 		move $a0, $v0
 		ori $v0, $0, 4
 		syscall		
@@ -614,12 +614,12 @@ if_nul :	bne $t0, 42, if_rouge
 		j fin_analyse
 
 if_rouge :	jal resetResultat
-		lw $t1, 4($sp)
-		ori $t0, $0, -1
-		bne $t0, $t1, else_jaune
+		lw $t1, 4($sp)			# couleur du dernier jeton ajotué
+		ori $t0, $0, -1			# met "couleur rouge" dans t0
+		bne $t0, $t1, else_jaune	# on compare "couleur rouge" avec la couleur du dernier jeton joué
 		la $a0, msg_gagnant1
 		la $a1, nom_rouge
-		jal concatenation
+		jal concatenation		# concantène le message de fin avec le nom du gagnant
 		move $a0, $v0
 		la $a1, msg_gagnant2
 		jal concatenation
