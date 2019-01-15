@@ -11,6 +11,8 @@ ROUGE :		.word -1
 JAUNE :		.word 1
 nb_jetons :	.word 0 : 7
 grille :	.word 0 : 156
+score_rouge :	.word 0
+score_jaune :	.word 0
 
 nbCoupJoue : 	.word 0
 
@@ -33,6 +35,7 @@ msg_nul :	.asciiz "La partie est terminée, égalité la grille est pleine !"
 msg_gagnant1 :	.asciiz "Le joueur "
 msg_gagnant2 :	.asciiz " a gagné, félicitations !"
 msgNewGame :	.asciiz "Voulez vous rejouer une partie"
+msgScore :	.asciiz "Scores "
 
 resultat :	.space 300
 
@@ -188,8 +191,7 @@ rouge :		bnez $t1, jaune			# $t2 contiendra la couleur du jeton à ajouter
 jaune :		beqz $t1, suite			#
 		ori $t2, $0, 1			#
 		
-suite :		ori $t4, $0, 4
-		mul $t4, $t4, $a0		# Décallage en fonction de la colonne entrée
+suite :		sll $t4, $a0, 2			# Décallage en fonction de la colonne entrée
 		add $t3, $t3, $t4
 		lw $t1, 0($t3)			# Couleur de la case la plus basse de la colonne entrée ($t1)
 		
@@ -201,7 +203,7 @@ while_plein : 	beqz $t1, fin_While		# On sort du While si la case est vide
 fin_While :	sw $t2, 0($t3)			# Nouvelle couleur dans la case vide trouvée
 
 		la $t0, nb_jetons		# Mise à jour du tableau qui contient le nombre de jetons par colonne
-		mul $t3, $a0, 4			#
+		sll $t3, $a0, 2			#
 		add $t0, $t0, $t3		#
 		lw $t4, 0($t0)			#
 		addi $t4, $t4, 1		#
@@ -225,7 +227,7 @@ demanderCouleur:
 		
 		la $t0, grille
 		addi $t0, $t0, 428		# Correspond à la case de coordonnée (0,0)
-		mul $t1, $t1, 4			# Décalage sur les colonnes
+		sll $t1, $t1, 2			# Décalage sur les colonnes
 		mul $t2, $t2, 52		# Décalage sur les lignes
 		
 		add $t0, $t0, $t1		# Application des décalages sur l'adresse de la case
@@ -300,7 +302,7 @@ estCoupValide :					# NECESSITE un numéro de colonne (0 - 6) en parametre ($a0)
 		addu $fp, $sp, 32
 		
 		la $t0, nb_jetons
-		mul $a0, $a0, 4
+		sll $a0, $a0, 2
 		add $t0, $t0, $a0		# On se place dans la case qui compte les jetons de la colonne demandée
 		
 		lw $t1, 0($t0)			# Nombre de jetons dans cette colonne
@@ -558,6 +560,43 @@ boucle_partie :	beq $t0, 42, fin_partie		# Permet de jouer un coup tant que le n
 fin_partie :	lw $a0, 4($fp)			# Récupère la dernière colonne entrée par un joueur
 		jal analyserFinPartie
 		
+		la $a0, msgScore		# Affiche les scores sous la grille après la fin de la partie
+		ori $v0, $0, 4			#
+		syscall				#
+		la $a0, nom_rouge		#
+		jal supRetour			#
+		la $a0, nom_rouge		#
+		syscall				#
+		ori $a0, $0, 32			#
+		ori $v0, $0, 11			#
+		syscall				#
+		la $a0, score_rouge		#
+		lw $a0, 0($a0)			#
+		ori $v0, $0, 1			#
+		syscall 			#
+		ori $a0, $0, 32			#
+		ori $v0, $0, 11			#
+		syscall				#
+		ori $a0, $0, 58			#
+		ori $v0, $0, 11			#
+		syscall				#
+		ori $a0, $0, 32			#
+		ori $v0, $0, 11			#
+		syscall				#
+		la $a0, score_jaune		#
+		lw $a0, 0($a0)			#
+		ori $v0, $0, 1			#
+		syscall 			#
+		ori $a0, $0, 32			#
+		ori $v0, $0, 11			#
+		syscall				#
+		la $a0, nom_jaune		#
+		ori $v0, $0, 4			#
+		syscall				#	
+		ori $a0, $0, 10			#
+		ori $v0, $0, 11			#
+		syscall				#
+		
 		la $a0, msgNewGame		# Demande aux joueurs si ils veulent rejouer
 		ori $v0, $0, 50
 		syscall
@@ -626,6 +665,11 @@ if_rouge :	jal resetResultat
 		la $a0, resultat
 		ori $v0, $0, 55
 		syscall
+		
+		la $t0, score_rouge		# Incrémentation score joueur rouge
+		lw $t1, 0($t0)			#
+		addi $t1, $t1, 1		#
+		sw $t1, 0($t0)			#
 		j fin_analyse
 
 else_jaune :	la $a0, msg_gagnant1
@@ -637,6 +681,11 @@ else_jaune :	la $a0, msg_gagnant1
 		la $a0, resultat
 		ori $v0, $0, 55
 		syscall
+		
+		la $t0, score_jaune		# Incrémentation score joueur jaune
+		lw $t1, 0($t0)			#
+		addi $t1, $t1, 1		#
+		sw $t1, 0($t0)			#
 
 fin_analyse :	
 		lw $ra, 0($sp)
@@ -676,7 +725,7 @@ prenomJaune :	la $a0, demande_jaune
 		
 		
 		
-concatenation :				# NECESSITE une chaine dans $a0, une autre dans $a1 / renvoie les deux chaine concaténées dans $v0	
+concatenation :					# NECESSITE une chaine dans $a0, une autre dans $a1 / renvoie les deux chaine concaténées dans $v0	
 		subu $sp, $sp, 32
 		sw $fp, 28($sp)
 		addu $fp, $sp, 32
@@ -704,4 +753,25 @@ suiteCpyCh2 :	la $v0, resultat
 		lw $fp, 28($sp)
 		addu $sp, $sp, 32
 		jr $ra
+
+
+
+
+
+
+supRetour :					# NECESSITE une chaine dans $a0 / modifie la chaine en mémoire afin de retirer '\n'
+		subu $sp, $sp, 32
+		sw $fp, 28($sp)
+		addu $fp, $sp, 32
 		
+verif_lettre :	lb $t0, 0($a0)
+		beqz $t0, fin_suppr
+		bne $t0, 10, fin_modif
+		ori $t0, $0, 0
+		sb $t0, 0($a0)
+fin_modif :	addi $a0, $a0, 1
+		j verif_lettre	
+		
+fin_suppr :	lw $fp, 28($sp)
+		addu $sp, $sp, 32
+		jr $ra
